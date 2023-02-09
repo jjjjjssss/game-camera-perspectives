@@ -6,11 +6,12 @@ public class ThirdPersonController : MonoBehaviour
 {
 
     public float forwardSpeed = 5f;
-    public float sidewaySpeed = 5f;
+    public float sidewaysSpeed = 5f;
     public float turnSpeed = 360f;
     public bool rotateWhenStill = true; 
 
     [SerializeField] private Transform cameraTransform;
+    [SerializeField] private Animator anim;
 
 
     void Start() 
@@ -29,24 +30,37 @@ public class ThirdPersonController : MonoBehaviour
     {
         float hInput = Input.GetAxis("Horizontal");
         float vInput = Input.GetAxis("Vertical");
+        bool isMovingForward = Mathf.Abs(vInput) >= 0.02;
+        bool isMovingSideways = Mathf.Abs(hInput) >= 0.02;
 
         Quaternion direction = Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up);
-        if (rotateWhenStill || vInput > 0f || hInput > 0f)
+        if (rotateWhenStill || isMovingForward || isMovingSideways)
         {
             transform.rotation = Quaternion.RotateTowards(transform.rotation, direction, turnSpeed * Time.deltaTime);
         }
 
-        if (vInput != 0f)
+        if (isMovingForward)
         {
             Vector3 forwardMovement = direction * new Vector3(0, 0, 1) * vInput * forwardSpeed * Time.deltaTime;
             transform.position += forwardMovement;
+            // anim.SetFloat("walkSpeed", Mathf.Abs(vInput)); // switch vInput for vInput * forwardSpeed if you want forward speed to affect speed of animation
         }
 
-        if (hInput != 0f)
+        if (isMovingSideways)
         {
             Quaternion hDirection = Quaternion.Euler(new Vector3(0, 90, 0)) * direction;
-            Vector3 sidewayMovement = hDirection * new Vector3(0, 0, 1) * hInput * sidewaySpeed * Time.deltaTime;
-            transform.position += sidewayMovement;
+            Vector3 sidewaysMovement = hDirection * new Vector3(0, 0, 1) * hInput * sidewaysSpeed * Time.deltaTime;
+            transform.position += sidewaysMovement;
+            // anim.SetFloat("walkSpeed", Mathf.Abs(hInput));
+        }
+
+        if (isMovingForward || isMovingSideways)
+        {
+            anim.SetBool("isWalking", true);
+        }
+        else
+        {
+            anim.SetBool("isWalking", false);
         }
     }
 
